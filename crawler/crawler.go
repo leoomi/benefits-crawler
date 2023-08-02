@@ -1,7 +1,9 @@
 package crawler
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/gocolly/colly/v2"
@@ -14,40 +16,58 @@ type Result struct {
 	Benefits []string
 }
 
+type crawler struct {
+	cfg *config.Config
+}
+
+func NewCrawler(cfg *config.Config) *crawler {
+	return &crawler{
+		cfg: cfg,
+	}
+}
+
 // Using named returns just in case of panics
-func GetBenefitsByCpf(config *config.Config, cpfs []string) (results []Result, err error) {
+func (c *crawler) GetBenefitsByCpf(cpfs []string) (results []Result, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			results = []Result{}
 			err = fmt.Errorf("error while scraping: %v", r)
 		}
 	}()
-	c := colly.NewCollector()
-	c.SetRequestTimeout(config.CrawlingTimeout)
+	coll := colly.NewCollector()
+	coll.SetRequestTimeout(c.cfg.CrawlingTimeout)
 
-	c.OnHTML("frame", func(e *colly.HTMLElement) {
+	coll.OnHTML("frame", func(e *colly.HTMLElement) {
 		url := e.Attr("src")
 
-		results = crawlWithRod(config, url, cpfs)
+		results = c.crawlWithRod(url, cpfs)
 	})
 
-	c.Visit(config.Website)
+	coll.Visit(c.cfg.Website)
 
 	return
 }
 
-func crawlWithRod(config *config.Config, url string, cpfs []string) []Result {
+func (c *crawler) crawlWithRod(url string, cpfs []string) []Result {
 	cpf := cpfs[0]
 	results := []Result{}
 	browser := rod.New().MustConnect().NoDefaultDevice()
 	page := browser.MustPage(url).MustWindowNormal()
 
+	ctx, cancel := context.WithCancel(context.Background())
+	page = page.Context(ctx)
+
+	go func() {
+		time.Sleep(c.cfg.CrawlingTimeout)
+		cancel()
+	}()
+
 	page.MustElement("#user").MustInput("konsiteste8")
 	page.MustElement("#pass").MustInput("konsiteste8")
 	page.MustElement("#botao").MustClick()
 
-	page.MustElement("app-modal-fila > ion-button").MustClick()
-	page.MustElement("ion-menu").MustShadowRoot().MustElement("ion-backdrop").MustClick()
+	// page.MustElement("app-modal-fila > ion-button").MustClick()
+	// page.MustElement("ion-menu").MustShadowRoot().MustElement("ion-backdrop").MustClick()
 
 	// page.MustWaitStable()
 	page.MustSearch("//span[text()='Encontrar Benefícios de um CPF']").MustClick()

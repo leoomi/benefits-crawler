@@ -13,7 +13,9 @@ func main() {
 		panic("error reading config")
 	}
 
-	test, err := crawler.GetBenefitsByCpf(cfg, []string{"056.054.235-68"})
+	c := crawler.NewCrawler(cfg)
+
+	test, err := c.GetBenefitsByCpf([]string{"056.054.235-68"})
 	if err != nil {
 		fmt.Println(err)
 	}
