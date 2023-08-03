@@ -11,23 +11,29 @@ import (
 	"github.com/leoomi/benefits-crawler/config"
 )
 
+type CrawlerInput struct {
+	CPF      string
+	Username string
+	Password string
+}
+
 type Result struct {
 	CPF      string
 	Benefits []string
 }
 
-type crawler struct {
+type Crawler struct {
 	cfg *config.Config
 }
 
-func NewCrawler(cfg *config.Config) *crawler {
-	return &crawler{
+func NewCrawler(cfg *config.Config) *Crawler {
+	return &Crawler{
 		cfg: cfg,
 	}
 }
 
 // Using named returns just in case of panics
-func (c *crawler) GetBenefitsByCpf(cpfs []string) (results []Result, err error) {
+func (c *Crawler) GetBenefitsByCpf(in CrawlerInput) (results []Result, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			results = []Result{}
@@ -40,7 +46,7 @@ func (c *crawler) GetBenefitsByCpf(cpfs []string) (results []Result, err error) 
 	coll.OnHTML("frame", func(e *colly.HTMLElement) {
 		url := e.Attr("src")
 
-		results = c.crawlWithRod(url, cpfs)
+		results = c.crawlWithRod(url, in)
 	})
 
 	coll.Visit(c.cfg.Website)
@@ -48,8 +54,7 @@ func (c *crawler) GetBenefitsByCpf(cpfs []string) (results []Result, err error) 
 	return
 }
 
-func (c *crawler) crawlWithRod(url string, cpfs []string) []Result {
-	cpf := cpfs[0]
+func (c *Crawler) crawlWithRod(url string, in CrawlerInput) []Result {
 	results := []Result{}
 	browser := rod.New().MustConnect().NoDefaultDevice()
 	page := browser.MustPage(url).MustWindowNormal()
@@ -59,25 +64,29 @@ func (c *crawler) crawlWithRod(url string, cpfs []string) []Result {
 
 	go func() {
 		time.Sleep(c.cfg.CrawlingTimeout)
+		browser.Close()
 		cancel()
 	}()
 
-	page.MustElement("#user").MustInput("konsiteste8")
-	page.MustElement("#pass").MustInput("konsiteste8")
+	page.MustElement("#user").MustInput(in.Username)
+	page.MustElement("#pass").MustInput(in.Password)
 	page.MustElement("#botao").MustClick()
 
-	// page.MustElement("app-modal-fila > ion-button").MustClick()
-	// page.MustElement("ion-menu").MustShadowRoot().MustElement("ion-backdrop").MustClick()
+	page.MustWaitStable()
+	page.MustElement("app-modal-fila > ion-button").MustClick()
+	page.MustElement("ion-menu").MustShadowRoot().MustElement("ion-backdrop").MustClick()
 
-	// page.MustWaitStable()
 	page.MustSearch("//span[text()='Encontrar Benefícios de um CPF']").MustClick()
+	page.MustSearch("//ion-card-title[text()='BENEFÍCIOS DE UM CPF']")
 
-	page.MustSearch("//ion-input").MustElement("input").MustInput(cpf)
+	page.MustSearch("//ion-input").MustElement("input").MustInput(in.CPF)
 	page.MustSearch("//ion-button[contains(text(), 'Procurar')]").MustClick()
-	benefitEls := page.MustSearch("//ion-card-header").MustParent().MustElements("ion-label")
+	benefitEls := page.MustSearch("//ion-card-title[text()='BENEFÍCIOS ENCONTRADOS!']").
+		MustParent().MustParent().
+		MustElements("ion-label")
 
 	result := Result{
-		CPF:      cpf,
+		CPF:      in.CPF,
 		Benefits: []string{},
 	}
 	for _, el := range benefitEls {
@@ -85,6 +94,7 @@ func (c *crawler) crawlWithRod(url string, cpfs []string) []Result {
 	}
 
 	results = append(results, result)
+	browser.Close()
 
 	return results
 }

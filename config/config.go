@@ -7,9 +7,12 @@ import (
 )
 
 type Config struct {
-	ServerAddress   string        `mapstructure:"SERVER_ADDRESS"`
-	Website         string        `mapstructure:"WEBSITE"`
-	CrawlingTimeout time.Duration `mapstructure:"CRAWLING_TIMEOUT"`
+	ServerAddress        string        `mapstructure:"SERVER_ADDRESS"`
+	Website              string        `mapstructure:"WEBSITE"`
+	CrawlingTimeout      time.Duration `mapstructure:"CRAWLING_TIMEOUT"`
+	RedisAddress         string        `mapstructure:"REDIS_ADDRESS"`
+	RabbitMQAddress      string        `mapstructure:"RABBITMQ_ADDRESS"`
+	ElasticSearchAddress string        `mapstructure:"ELASTICSEARCH_ADDRESS"`
 }
 
 func LoadConfig(path string) (*Config, error) {
