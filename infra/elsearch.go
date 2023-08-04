@@ -20,7 +20,7 @@ type ElsearchRes struct {
 type DocResponse[T any] struct {
 	Id     string `json:"_id"`
 	Source T      `json:"_source"`
-	Found  bool   `json:"_found"`
+	Found  bool   `json:"found"`
 }
 
 type UpdateReq struct {
