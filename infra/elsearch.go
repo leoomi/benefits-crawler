@@ -3,9 +3,9 @@ package infra
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 
-	"github.com/elastic/go-elasticsearch/v8"
 	es "github.com/elastic/go-elasticsearch/v8"
 	"github.com/leoomi/benefits-crawler/config"
 )
@@ -17,8 +17,18 @@ type ElsearchRes struct {
 	Id string `json:"_id"`
 }
 
+type DocResponse[T any] struct {
+	Id     string `json:"_id"`
+	Source T      `json:"_source"`
+	Found  bool   `json:"_found"`
+}
+
+type UpdateReq struct {
+	Doc map[string]interface{} `json:"doc"`
+}
+
 type Elsearch struct {
-	client *elasticsearch.Client
+	client *es.Client
 }
 
 func NewElsearchClient(cfg *config.Config) (*Elsearch, error) {
@@ -49,4 +59,26 @@ func (e *Elsearch) CreateIndex(index string, data []byte) (ElsearchRes, error) {
 	json.Unmarshal(bytes, &elsearchRes)
 
 	return elsearchRes, nil
+}
+
+func (e *Elsearch) GetDocument(index string, id string) ([]byte, error) {
+	res, err := e.client.Get(index, id)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}
+
+func (e *Elsearch) UpdateDocument(index string, id string, body []byte) error {
+	res, err := e.client.Update(index, id, bytes.NewReader(body))
+	str, _ := io.ReadAll(res.Body)
+	fmt.Println(str)
+
+	return err
 }

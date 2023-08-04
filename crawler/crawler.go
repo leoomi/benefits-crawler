@@ -33,10 +33,10 @@ func NewCrawler(cfg *config.Config) *Crawler {
 }
 
 // Using named returns just in case of panics
-func (c *Crawler) GetBenefitsByCpf(in CrawlerInput) (results []Result, err error) {
+func (c *Crawler) GetBenefitsByCpf(in CrawlerInput) (results Result, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			results = []Result{}
+			results = Result{}
 			err = fmt.Errorf("error while scraping: %v", r)
 		}
 	}()
@@ -54,8 +54,7 @@ func (c *Crawler) GetBenefitsByCpf(in CrawlerInput) (results []Result, err error
 	return
 }
 
-func (c *Crawler) crawlWithRod(url string, in CrawlerInput) []Result {
-	results := []Result{}
+func (c *Crawler) crawlWithRod(url string, in CrawlerInput) Result {
 	browser := rod.New().MustConnect().NoDefaultDevice()
 	page := browser.MustPage(url).MustWindowNormal()
 
@@ -93,8 +92,7 @@ func (c *Crawler) crawlWithRod(url string, in CrawlerInput) []Result {
 		result.Benefits = append(result.Benefits, el.MustText())
 	}
 
-	results = append(results, result)
 	browser.Close()
 
-	return results
+	return result
 }

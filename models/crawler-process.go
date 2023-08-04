@@ -3,10 +3,11 @@ package models
 type ProcessState string
 
 const (
-	Created ProcessState = "Created"
-	Running ProcessState = "Running"
-	Done    ProcessState = "Done"
-	Failed  ProcessState = "Failed"
+	Created  ProcessState = "Created"
+	Running  ProcessState = "Running"
+	Done     ProcessState = "Done"
+	Canceled ProcessState = "Canceled"
+	Failed   ProcessState = "Failed"
 )
 
 type CrawlerProcess struct {

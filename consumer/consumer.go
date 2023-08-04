@@ -1,16 +1,16 @@
 package consumer
 
 import (
-	"encoding/json"
-	"fmt"
+	"context"
 
 	"github.com/leoomi/benefits-crawler/config"
 	"github.com/leoomi/benefits-crawler/crawler"
 	"github.com/leoomi/benefits-crawler/infra"
 	"github.com/leoomi/benefits-crawler/models"
-	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/redis/go-redis/v9"
 )
+
+var ctx = context.Background()
 
 type Consumer struct {
 	cfg      *config.Config
@@ -43,18 +43,4 @@ func (c *Consumer) StartConsumer() error {
 	}()
 
 	return nil
-}
-
-func (c *Consumer) handleCralwerMessages(delivery amqp.Delivery) {
-	go func() {
-		var process models.CrawlerProcess
-		json.Unmarshal(delivery.Body, &process)
-		results, _ := c.crawler.GetBenefitsByCpf(crawler.CrawlerInput{
-			CPF:      process.CPF,
-			Username: process.Username,
-			Password: process.Password,
-		})
-
-		fmt.Println(results)
-	}()
 }

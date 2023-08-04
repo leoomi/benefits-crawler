@@ -7,7 +7,8 @@ import (
 func (s *server) setupRoutes() {
 	router := gin.Default()
 
-	router.POST("/api/findBenefits", s.findBenefits)
+	router.POST("/api/crawlerProcesses", s.createCrawler)
+	router.GET("/api/crawlerProcesses/:id", s.getCrawlerProcess)
 
 	s.router = router
 }
