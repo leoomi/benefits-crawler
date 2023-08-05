@@ -5,12 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Package",
+            "name": "Launch API server",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "main.go",
-            "args": ["-rod=show,devtools"]
+            "program": "cmd/api-server/api-server.go",
+            "args": ["-c", "${workspaceFolder}"]
+        },
+        {
+            "name": "Launch Crawler server",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "cmd/crawler-server/crawler-server.go",
+            "args": ["-rod=show,devtools", "-c", "${workspaceFolder}"]
         }
     ]
 }
