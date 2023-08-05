@@ -9,12 +9,12 @@ import (
 )
 
 type getBenefitsRequest struct {
-	CPF string `json:"cpf" binding:"required"`
+	CPF string `uri:"cpf" binding:"required"`
 }
 
 func (s *server) getBenefits(ctx *gin.Context) {
 	var req getBenefitsRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
+	if err := ctx.ShouldBindUri(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}

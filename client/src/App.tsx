@@ -13,8 +13,16 @@ function App() {
     };
 
     const cpf = target.cpf.value;
-    setSubmitted(true);
-    console.log(cpf);
+    fetch(`/api/benefits/${cpf}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data === null) {
+          setResults(null)
+        } else {
+          setResults(data.benefits)
+        }
+        setSubmitted(true);
+      })
   }
 
   return (
