@@ -16,7 +16,7 @@ const crawlerProcessMapping = `{
 			"cpf": { "type": "keyword" },
 			"username": { "type": "text" },
 			"password": { "type": "text" },
-			"state": { "type": "text" }
+			"process_state": { "type": "text" }
 		}
 	}
 }`
@@ -101,7 +101,7 @@ func (e *Elsearch) GetDocument(index string, id string, doc interface{}) error {
 		return ErrESNotFound
 	}
 
-	fields, _ := json.Marshal(get.Fields)
+	fields, _ := json.Marshal(get.Source)
 	json.Unmarshal(fields, doc)
 
 	return nil
@@ -157,4 +157,27 @@ func (e *Elsearch) SearchSingleDocument(index string, field string, value string
 	}
 
 	return nil
+}
+
+func (e *Elsearch) SearchSingleDocumentId(index string, field string, value string) (string, error) {
+	query := es.NewTermQuery(field, value)
+	res, err := e.client.
+		Search().
+		Index(index).
+		Query(query).
+		Do(context.Background())
+
+	if err != nil {
+		return "", err
+	}
+
+	if res.Hits.TotalHits.Value == 0 {
+		return "", ErrESNotFound
+	}
+
+	for _, h := range res.Hits.Hits {
+		return h.Id, nil
+	}
+
+	return "", errors.New("something went wrong")
 }

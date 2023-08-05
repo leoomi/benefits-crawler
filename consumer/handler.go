@@ -3,6 +3,7 @@ package consumer
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/leoomi/benefits-crawler/crawler"
 	"github.com/leoomi/benefits-crawler/infra"
@@ -11,6 +12,7 @@ import (
 )
 
 func (c *Consumer) handleCralwerMessages(delivery amqp.Delivery) {
+	fmt.Printf("Received message: %v\n", delivery)
 	go func() {
 		var process models.CrawlerProcessWithId
 		json.Unmarshal(delivery.Body, &process)
@@ -33,21 +35,24 @@ func (c *Consumer) handleCralwerMessages(delivery amqp.Delivery) {
 			return
 		}
 
-		value, _ := json.Marshal(result)
-		err = c.redis.Set(ctx, result.CPF, value, -1).Err()
-		if err != nil {
-			fmt.Printf("Saving to redis failed: %s\n", err)
-		}
-
 		c.updateProcess(process.ID, models.Done)
-
 		benefits := models.Benefits{
 			CPF:      process.CPF,
 			Benefits: result.Benefits,
 		}
 
-		c.redis.Set(ctx, benefits.CPF, benefits, 0)
-		c.elsearch.CreateDocument(infra.BenefitsIndex, benefits)
+		err = c.createOrUpdateBenefits(benefits)
+		if err != nil {
+			fmt.Printf("Creating or updating ES document failed: %s\n", err)
+			return
+		}
+
+		value, _ := json.Marshal(benefits)
+		err = c.redis.Set(ctx, benefits.CPF, value, time.Hour).Err()
+		if err != nil {
+			fmt.Printf("Saving to redis failed: %s\n", err)
+			return
+		}
 	}()
 }
 
@@ -63,4 +68,21 @@ func (c *Consumer) updateProcess(id string, state models.ProcessState) error {
 	}
 	err := c.elsearch.UpdateDocument(infra.CrawlerProcessIndex, id, doc)
 	return err
+}
+
+func (c *Consumer) createOrUpdateBenefits(benefits models.Benefits) error {
+	id, err := c.elsearch.SearchSingleDocumentId(infra.BenefitsIndex, "cpf", benefits.CPF)
+	if err == infra.ErrESNotFound {
+		c.elsearch.CreateDocument(infra.BenefitsIndex, benefits)
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	c.elsearch.UpdateDocument(infra.BenefitsIndex, id, map[string]interface{}{
+		"benefits": benefits.Benefits,
+	})
+
+	return nil
 }
