@@ -47,8 +47,7 @@ func (c *Consumer) handleCralwerMessages(delivery amqp.Delivery) {
 		}
 
 		c.redis.Set(ctx, benefits.CPF, benefits, 0)
-		value, _ = json.Marshal(benefits)
-		c.elsearch.CreateIndex(infra.BenefitsIndex, value)
+		c.elsearch.CreateDocument(infra.BenefitsIndex, benefits)
 	}()
 }
 
@@ -59,12 +58,9 @@ func (c *Consumer) isCPFInCache(cpf string) bool {
 }
 
 func (c *Consumer) updateProcess(id string, state models.ProcessState) error {
-	req := infra.UpdateReq{
-		Doc: map[string]interface{}{
-			"process_state": state,
-		},
+	doc := map[string]interface{}{
+		"process_state": state,
 	}
-	data, _ := json.Marshal(req)
-	err := c.elsearch.UpdateDocument(infra.CrawlerProcessIndex, id, data)
+	err := c.elsearch.UpdateDocument(infra.CrawlerProcessIndex, id, doc)
 	return err
 }

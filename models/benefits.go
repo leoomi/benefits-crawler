@@ -1,6 +1,6 @@
 package models
 
 type Benefits struct {
-	CPF      string
-	Benefits []string
+	CPF      string   `json:"cpf"`
+	Benefits []string `json:"benefits"`
 }

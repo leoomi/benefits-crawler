@@ -9,17 +9,13 @@ import (
 	"github.com/gocolly/colly/v2"
 
 	"github.com/leoomi/benefits-crawler/config"
+	"github.com/leoomi/benefits-crawler/models"
 )
 
 type CrawlerInput struct {
 	CPF      string
 	Username string
 	Password string
-}
-
-type Result struct {
-	CPF      string
-	Benefits []string
 }
 
 type Crawler struct {
@@ -33,10 +29,10 @@ func NewCrawler(cfg *config.Config) *Crawler {
 }
 
 // Using named returns just in case of panics
-func (c *Crawler) GetBenefitsByCpf(in CrawlerInput) (results Result, err error) {
+func (c *Crawler) GetBenefitsByCpf(in CrawlerInput) (results models.Benefits, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			results = Result{}
+			results = models.Benefits{}
 			err = fmt.Errorf("error while scraping: %v", r)
 		}
 	}()
@@ -54,7 +50,7 @@ func (c *Crawler) GetBenefitsByCpf(in CrawlerInput) (results Result, err error) 
 	return
 }
 
-func (c *Crawler) crawlWithRod(url string, in CrawlerInput) Result {
+func (c *Crawler) crawlWithRod(url string, in CrawlerInput) models.Benefits {
 	browser := rod.New().MustConnect().NoDefaultDevice()
 	page := browser.MustPage(url).MustWindowNormal()
 
@@ -84,10 +80,17 @@ func (c *Crawler) crawlWithRod(url string, in CrawlerInput) Result {
 		MustParent().MustParent().
 		MustElements("ion-label")
 
-	result := Result{
+	result := models.Benefits{
 		CPF:      in.CPF,
 		Benefits: []string{},
 	}
+
+	if len(benefitEls) == 1 &&
+		benefitEls.First().MustText() == "Matrícula não encontrada!" {
+		browser.Close()
+		return result
+	}
+
 	for _, el := range benefitEls {
 		result.Benefits = append(result.Benefits, el.MustText())
 	}

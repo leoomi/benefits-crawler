@@ -29,15 +29,14 @@ func (s *server) createCrawler(ctx *gin.Context) {
 		State:    models.Created,
 	}
 
-	data, _ := json.Marshal(process)
-	elsearchRes, err := s.elsearch.CreateIndex(infra.CrawlerProcessIndex, data)
+	id, err := s.elsearch.CreateDocument(infra.CrawlerProcessIndex, process)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
 	res := models.CrawlerProcessWithId{
-		ID:             elsearchRes.Id,
+		ID:             id,
 		CrawlerProcess: process,
 	}
 
@@ -67,19 +66,15 @@ func (s *server) getCrawlerProcess(ctx *gin.Context) {
 		return
 	}
 
-	data, err := s.elsearch.GetDocument(infra.CrawlerProcessIndex, req.ID)
+	var process models.CrawlerProcess
+	err := s.elsearch.GetDocument(infra.CrawlerProcessIndex, req.ID, &process)
 	if err != nil {
+		if err == infra.ErrESNotFound {
+			ctx.JSON(http.StatusNotFound, nil)
+		}
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	docRes := infra.DocResponse[models.CrawlerProcess]{}
-	json.Unmarshal(data, &docRes)
-
-	if !docRes.Found {
-		ctx.JSON(http.StatusNotFound, nil)
-		return
-	}
-
-	ctx.JSON(http.StatusOK, docRes.Source)
+	ctx.JSON(http.StatusOK, process)
 }
