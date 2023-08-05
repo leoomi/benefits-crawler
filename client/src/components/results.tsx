@@ -8,13 +8,13 @@ function CPFNotRegistered() {
 }
 
 function NoBefits() {
-  return <span>Não há benefícios associados a este CPF.i</span>
+  return <span>Não há benefícios associados a este CPF.</span>
 }
 
 function Benefits(results: string[]) {
   return(
-    results.map(r => 
-      <span>{r}</span>
+    results.map((r, idx) => 
+      <span key={idx}>{r}</span>
     )
   )
 }

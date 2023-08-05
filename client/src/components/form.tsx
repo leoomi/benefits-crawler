@@ -9,7 +9,7 @@ export default function Form({ onSave }: FormInput) {
     <div className="flex flex-col items-center">
       <label className="m-4">
         <span className="mr-4">CPF:</span>
-        <input className="text-black rounded-md"
+        <input className="px-4 py-2 text-black rounded-md"
           name="cpf"
           type="text" />
       </label>
