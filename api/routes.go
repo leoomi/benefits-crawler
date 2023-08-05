@@ -9,6 +9,7 @@ func (s *server) setupRoutes() {
 
 	router.POST("/api/crawlerProcesses", s.createCrawler)
 	router.GET("/api/crawlerProcesses/:id", s.getCrawlerProcess)
+	router.GET("/api/benefits", s.getBenefits)
 
 	s.router = router
 }

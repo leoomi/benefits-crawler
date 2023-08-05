@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	es "github.com/elastic/go-elasticsearch/v8"
 	"github.com/leoomi/benefits-crawler/config"
@@ -81,4 +82,19 @@ func (e *Elsearch) UpdateDocument(index string, id string, body []byte) error {
 	fmt.Println(str)
 
 	return err
+}
+
+func (e *Elsearch) SearchDocument(index string, field string, value string) ([]byte, error) {
+	query := ``
+	res, err := e.client.Search(
+		e.client.Search.WithIndex(index),
+		e.client.Search.WithBody(strings.NewReader(query)),
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	str, _ := io.ReadAll(res.Body)
+	return str, nil
 }

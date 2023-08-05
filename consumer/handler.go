@@ -40,12 +40,22 @@ func (c *Consumer) handleCralwerMessages(delivery amqp.Delivery) {
 		}
 
 		c.updateProcess(process.ID, models.Done)
+
+		benefits := models.Benefits{
+			CPF:      process.CPF,
+			Benefits: result.Benefits,
+		}
+
+		c.redis.Set(ctx, benefits.CPF, benefits, 0)
+		value, _ = json.Marshal(benefits)
+		c.elsearch.CreateIndex(infra.BenefitsIndex, value)
 	}()
 }
 
 func (c *Consumer) isCPFInCache(cpf string) bool {
 	_, err := c.redis.Get(ctx, cpf).Result()
-	return err != nil
+
+	return err == nil
 }
 
 func (c *Consumer) updateProcess(id string, state models.ProcessState) error {
