@@ -24,7 +24,7 @@ services:
       - "5672:5672"
       - "15672:15672"
   crawler:
-    image: konsi-crawler:latest
+    image: leoomi/benefits-crawler:latest
     deploy:
       mode: replicated
       replicas: 3
@@ -49,7 +49,7 @@ services:
       - redis
       - elasticsearch
   api:
-    image: konsi-api:latest
+    image: leoomi/benefits-crawler-api:latest
     container_name: api
     ports:
       - "8080:8080"
