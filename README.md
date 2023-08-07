@@ -59,7 +59,9 @@ The results can also be checked in the frontend client, which should be accessib
 
 ## Project structure and explanation
 This project was built using Go for both the API and Crawler servers. They have shared code in the infra, models, and config directories. Their main files are both in the cmd directory.
+
 The API server uses the GIN framework to serve the static frontend files and the API endpoints. Most of the code is located in the api folder.
+
 The Crawler server uses the colly library for initial data scraping, but most of the crawling is done with the rod library, which runs a Chromium instance to retrieve the information. Most of the code is located in the consumer and crawler directories.
 
 When the API receives a POST request in `/api/crawlerProcesses`, it indexes a document that represents the crawler's process and creates a message in RabbitMQ. This message can be consumed by any crawler server that is consuming the queue. A crawler server checks if a CPF result was already cached in Redis and if not, starts crawling. If successful, the results are indexed in Elasticsearch, or the indexed document is updated, and the result is put in the Redis cache.
