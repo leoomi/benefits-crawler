@@ -51,7 +51,7 @@ Considering the process was successful it should return:
 ```
 The `process_state` can return `Created`, `Running`, `Canceled`, `Failed`, and `Done`. `Canceled` is returned in case there is a result cached from a previous request and `Failed` is returned in case the crawler is not able to retrieve the information.
 
-The results with the API:
+The results can be retrieved with the API:
 ```
 curl -XGET 'localhost:8080/api/benefits/000.000.000-00'
 ```
