@@ -37,7 +37,7 @@ type Elsearch struct {
 }
 
 func NewElsearchClient(cfg *config.Config) (*Elsearch, error) {
-	elsearchClient, err := es.NewClient()
+	elsearchClient, err := es.NewClient(es.SetURL(cfg.ElasticSearchAddress))
 	if err != nil {
 		return nil, err
 	}

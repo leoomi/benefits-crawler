@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "cmd/api-server/api-server.go",
-            "args": ["-c", "${workspaceFolder}"]
+            "args": ["-r", "${workspaceFolder}"]
         },
         {
             "name": "Launch Crawler server",
@@ -18,7 +18,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "cmd/crawler-server/crawler-server.go",
-            "args": ["-rod=show,devtools", "-c", "${workspaceFolder}"]
+            "args": ["-rod=show,devtools", "-r", "${workspaceFolder}"]
         }
     ]
 }

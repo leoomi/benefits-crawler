@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/launcher"
 	"github.com/gocolly/colly/v2"
 
 	"github.com/leoomi/benefits-crawler/config"
@@ -51,8 +52,18 @@ func (c *Crawler) GetBenefitsByCpf(in CrawlerInput) (results models.Benefits, er
 }
 
 func (c *Crawler) crawlWithRod(url string, in CrawlerInput) models.Benefits {
-	browser := rod.New().MustConnect().NoDefaultDevice()
-	page := browser.MustPage(url).MustWindowNormal()
+	var page *rod.Page
+	var browser *rod.Browser
+
+	if c.cfg.RunningInContainer {
+		path, _ := launcher.LookPath()
+		u := launcher.New().Bin(path).MustLaunch()
+		browser = rod.New().ControlURL(u)
+		page = browser.MustConnect().MustPage(url)
+	} else {
+		browser := rod.New().MustConnect().NoDefaultDevice()
+		page = browser.MustPage(url).MustWindowNormal()
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	page = page.Context(ctx)

@@ -11,22 +11,25 @@ import (
 )
 
 func main() {
-	var configFlag = flag.String("c", ".", "config file path")
+	var rootDir = flag.String("r", ".", "root directory file path to load configurations and the client files")
 	flag.Parse()
 
-	cfg, err := config.LoadConfig(*configFlag)
+	cfg, err := config.LoadConfig(*rootDir)
 	if err != nil {
 		panic("error reading config")
 	}
+	fmt.Println(*cfg)
 
 	redis := infra.NewRedisClient(cfg)
 	elsearch, err := infra.NewElsearchClient(cfg)
 	if err != nil {
+		fmt.Println(err)
 		panic("elasticsearch connection failed")
 	}
 
 	rabbitmq, err := infra.NewAMPQClient(cfg)
 	if err != nil {
+		fmt.Println(err)
 		panic("rabbitmq connection failed")
 	}
 	defer rabbitmq.Close()
@@ -38,7 +41,7 @@ func main() {
 		Rabbitmq: rabbitmq,
 	}
 
-	server := api.NewServer(&deps)
+	server := api.NewServer(&deps, *rootDir)
 	err = server.Start()
 
 	if err != nil {

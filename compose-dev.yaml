@@ -1,0 +1,25 @@
+services:
+  elasticsearch:
+    image: bitnami/elasticsearch:7.17.12
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - cluster.routing.allocation.disk.threshold_enabled=false
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+  rabbitmq:
+    image: rabbitmq:3.12.2-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"

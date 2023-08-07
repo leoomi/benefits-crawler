@@ -11,13 +11,14 @@ import (
 )
 
 func main() {
-	var configFlag = flag.String("c", ".", "config file path")
+	var rootDir = flag.String("r", ".", "root directory file path to load configurations and the client files")
 	flag.Parse()
 
-	cfg, err := config.LoadConfig(*configFlag)
+	cfg, err := config.LoadConfig(*rootDir)
 	if err != nil {
 		panic("error reading config")
 	}
+	fmt.Println(*cfg)
 
 	redis := infra.NewRedisClient(cfg)
 	elsearch, err := infra.NewElsearchClient(cfg)

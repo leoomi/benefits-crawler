@@ -1,0 +1,17 @@
+# Build state
+FROM golang:1.20.5-alpine3.18 AS builder
+WORKDIR /app
+COPY . .
+RUN apk add --no-cache make
+RUN make build-crawler
+
+# Run
+FROM alpine:3.18
+WORKDIR /app
+RUN apk add chromium
+RUN apk add --no-cache bash
+COPY --from=builder /app/crawler-server .
+COPY app.env .
+COPY wait-for-it.sh .
+
+CMD [ "/app/crawler-server", "-r", "/app"]

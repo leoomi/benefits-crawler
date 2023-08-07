@@ -13,6 +13,7 @@ type Config struct {
 	RedisAddress         string        `mapstructure:"REDIS_ADDRESS"`
 	RabbitMQAddress      string        `mapstructure:"RABBITMQ_ADDRESS"`
 	ElasticSearchAddress string        `mapstructure:"ELASTICSEARCH_ADDRESS"`
+	RunningInContainer   bool          `mapstructure:"RUNNING_IN_CONTAINER"`
 }
 
 func LoadConfig(path string) (*Config, error) {

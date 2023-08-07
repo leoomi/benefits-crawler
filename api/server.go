@@ -16,7 +16,7 @@ type server struct {
 	rabbitmq *infra.RMQClient
 }
 
-func NewServer(deps *models.CommondDeps) *server {
+func NewServer(deps *models.CommondDeps, rootDir string) *server {
 	api := &server{
 		cfg:      deps.Cfg,
 		redis:    deps.Redis,
@@ -24,7 +24,7 @@ func NewServer(deps *models.CommondDeps) *server {
 		rabbitmq: deps.Rabbitmq,
 	}
 
-	api.setupRoutes()
+	api.setupRoutes(rootDir)
 
 	return api
 }

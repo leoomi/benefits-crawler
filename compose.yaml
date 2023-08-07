@@ -5,6 +5,8 @@ services:
     ports:
       - "9200:9200"
       - "9300:9300"
+    environment:
+      - cluster.routing.allocation.disk.threshold_enabled=false
     healthcheck:
       test: ["CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1"]
       interval: 10s
@@ -21,3 +23,48 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+  crawler:
+    image: konsi-crawler:latest
+    deploy:
+      mode: replicated
+      replicas: 3
+    command: [
+      "/app/wait-for-it.sh",
+      "elasticsearch:9200",
+      "-t", "30",
+      "--",
+      "/app/wait-for-it.sh",
+      "api:8080",
+      "--",
+      "/app/crawler-server"
+    ]
+    environment:
+      - REDIS_ADDRESS=redis:6379
+      - RABBITMQ_ADDRESS=amqp://guest:guest@rabbitmq:5672
+      - ELASTICSEARCH_ADDRESS=http://elasticsearch:9200
+      - RUNNING_IN_CONTAINER=true
+    depends_on:
+      - api
+      - rabbitmq
+      - redis
+      - elasticsearch
+  api:
+    image: konsi-api:latest
+    container_name: api
+    ports:
+      - "8080:8080"
+    command: [
+      "/app/wait-for-it.sh",
+      "elasticsearch:9200",
+      "-t", "30",
+      "--",
+      "/app/api-server"
+    ]
+    environment:
+      - REDIS_ADDRESS=redis:6379
+      - RABBITMQ_ADDRESS=amqp://guest:guest@rabbitmq:5672
+      - ELASTICSEARCH_ADDRESS=http://elasticsearch:9200
+    depends_on:
+      - rabbitmq
+      - redis
+      - elasticsearch
